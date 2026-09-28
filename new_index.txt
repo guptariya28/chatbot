@@ -1,0 +1,27 @@
+// 📍 INSIDE YOUR TEMPLATES/INDEX.HTML JAVASCRIPT CHAT LOOP:
+// Overwrite or insert this block right where the Chatbot's message bubble finishes appending:
+
+if (data.sources && data.sources.length > 0) {
+    // 🟢 PRODUCTION SOURCE LINK CONTAINER ENGINE
+    let sourcesHTML = '<div class="sources-link-wrapper" style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #e0e0e0; font-size: 0.85em;">';
+    sourcesHTML += '<span style="color: #666666; font-weight: 600; display: block; margin-bottom: 4px;">📁 Verifiable Sources:</span>';
+    
+    data.sources.forEach(source => {
+        // Renders an official clickable hyperlink card showing strictly the short file name!
+        sourcesHTML += `
+            <a href="${source.download_url}" 
+               target="_blank" 
+               title="Click to view or download: ${source.file_name}"
+               style="color: #0066cc; text-decoration: underline; display: inline-block; margin-right: 14px; margin-bottom: 4px; font-weight: 500; transition: color 0.2s;"
+               onmouseover="this.style.color='#004499'" 
+               onmouseout="this.style.color='#0066cc'">
+               📄 ${source.file_name} <span style="color: #888888; font-weight: 400; font-size: 0.9em;">(${source.location})</span>
+            </a>
+        `;
+    });
+    
+    sourcesHTML += '</div>';
+    
+    // Append this compiled HTML string layout directly underneath your bot's text answer block bubble container
+    // Example: messageBubbleElement.insertAdjacentHTML('beforeend', sourcesHTML);
+}

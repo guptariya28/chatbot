@@ -255,6 +255,42 @@
   .msg-meta{
     font-size:11.5px;color:var(--text-faint);padding:0 2px;
   }
+  .msg-tabs{display:flex;gap:4px;padding:0 2px;}
+  .msg-tab{
+    background:none;border:none;font-family:inherit;font-size:12.5px;font-weight:600;
+    color:var(--text-muted);padding:5px 12px;border-radius:999px;cursor:pointer;
+    transition:background .15s ease,color .15s ease;
+  }
+  .msg-tab:hover{background:var(--bg-soft);color:var(--text);}
+  .msg-tab.active{background:var(--accent-soft);color:var(--accent-dark);}
+  .tab-count{
+    display:inline-block;min-width:18px;padding:0 5px;margin-left:3px;border-radius:999px;
+    background:var(--accent);color:#fff;font-size:11px;line-height:18px;text-align:center;
+  }
+  .src-panel{
+    padding:14px;border:1px solid var(--border);border-radius:var(--radius-md);
+    background:var(--bg-soft);
+  }
+  .src-panel[hidden], .bubble[hidden]{display:none;}
+  .src-hint{font-size:12px;color:var(--text-muted);margin-bottom:10px;}
+  .src-list{display:flex;flex-direction:column;gap:8px;}
+  .src-item{
+    display:flex;align-items:center;gap:12px;padding:10px 14px;
+    background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);
+    text-decoration:none;color:var(--text);
+    transition:border-color .15s ease,background .15s ease;
+  }
+  .src-item:hover{border-color:var(--accent);background:var(--accent-soft);}
+  .src-icon{
+    width:32px;height:32px;border-radius:8px;flex:0 0 auto;
+    background:var(--accent-soft);color:var(--accent-dark);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .src-text{min-width:0;}
+  .src-name{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .src-loc{font-size:12px;color:var(--text-faint);margin-top:1px;}
+  .src-open{margin-left:auto;color:var(--text-faint);flex:0 0 auto;}
+  .src-item:hover .src-open{color:var(--accent-dark);}
   .sources-wrap{display:flex;flex-direction:column;gap:6px;padding:0 2px;}
   .sources-label{font-size:11.5px;font-weight:600;color:var(--text-muted);}
   .bubble b, .bubble strong{font-weight:700;color:inherit;}
@@ -694,31 +730,67 @@
     bubbleCol.appendChild(bubble);
 
     const sources = data.sources || [];
-    if(sources.length){
-      const srcWrap = document.createElement('div');
-      srcWrap.className = 'sources-wrap';
-      srcWrap.innerHTML = '<div class="sources-label">Sources</div>';
-      const srcRow = document.createElement('div');
-      srcRow.className = 'sources-row';
-      sources.forEach(s => {
-        // _format_sources returns {file_name, title, ...}
-        const filename = typeof s === 'string' ? s : (s.file_name || s.filename || s.name || '');
-        const label = typeof s === 'string' ? s : (s.title || filename || 'Source');
-        const href = (s && s.download_url) ? s.download_url : (filename ? `/source/${encodeURIComponent(filename)}` : '');
-        if(!href) return;
+    const sourceItems = [];
+    sources.forEach(s => {
+      // _format_sources returns {file_name, title, ...}
+      const filename = typeof s === 'string' ? s : (s.file_name || s.filename || s.name || '');
+      if(!filename) return;
+      const title = typeof s === 'string' ? '' : (s.title || '');
+      let loc = title.replace(filename, '').trim().replace(/^\(/, '').replace(/\)$/, '').trim();
+      let href = (s && s.download_url) ? s.download_url : `/source/${encodeURIComponent(filename)}`;
+      const pageMatch = loc.match(/page\s*(\d+)/i);
+      if(pageMatch && /\.pdf$/i.test(filename)) href += `#page=${pageMatch[1]}`;
+      sourceItems.push({filename, loc, href});
+    });
+
+    // Tabs: Answer | Sources (n)
+    const answerPanel = bubble;
+    let sourcesPanel = null;
+    if(sourceItems.length){
+      const tabs = document.createElement('div');
+      tabs.className = 'msg-tabs';
+      const tabAnswer = document.createElement('button');
+      tabAnswer.className = 'msg-tab active';
+      tabAnswer.textContent = 'Answer';
+      const tabSources = document.createElement('button');
+      tabSources.className = 'msg-tab';
+      tabSources.innerHTML = `Sources <span class="tab-count">${sourceItems.length}</span>`;
+      tabs.appendChild(tabAnswer);
+      tabs.appendChild(tabSources);
+      bubbleCol.insertBefore(tabs, bubble);
+
+      sourcesPanel = document.createElement('div');
+      sourcesPanel.className = 'src-panel';
+      sourcesPanel.hidden = true;
+      sourcesPanel.innerHTML = '<div class="src-hint">This answer was generated from these documents — click to open:</div>';
+      const list = document.createElement('div');
+      list.className = 'src-list';
+      sourceItems.forEach(it => {
         const a = document.createElement('a');
-        a.className = 'source-chip';
-        a.href = href;
+        a.className = 'src-item';
+        a.href = it.href;
         a.target = '_blank';
         a.rel = 'noopener';
-        a.title = 'Open ' + filename;
-        a.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span>${escapeHtml(label)}</span>`;
-        srcRow.appendChild(a);
+        a.innerHTML = `
+          <div class="src-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+          <div class="src-text"><div class="src-name"></div><div class="src-loc"></div></div>
+          <svg class="src-open" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>`;
+        a.querySelector('.src-name').textContent = it.filename;
+        const locEl = a.querySelector('.src-loc');
+        if(it.loc) locEl.textContent = it.loc; else locEl.remove();
+        list.appendChild(a);
       });
-      if(srcRow.children.length){
-        srcWrap.appendChild(srcRow);
-        bubbleCol.appendChild(srcWrap);
-      }
+      sourcesPanel.appendChild(list);
+      bubbleCol.insertBefore(sourcesPanel, bubble.nextSibling);
+
+      tabAnswer.addEventListener('click', () => {
+        tabAnswer.classList.add('active'); tabSources.classList.remove('active');
+        answerPanel.hidden = false; sourcesPanel.hidden = true;
+      });
+      tabSources.addEventListener('click', () => {
+        tabSources.classList.add('active'); tabAnswer.classList.remove('active');
+        answerPanel.hidden = true; sourcesPanel.hidden = false;
+      });
     }
 
     const fbRow = buildFeedbackRow(data.message_id);
@@ -834,9 +906,15 @@
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({question: text, conversation_id: state.conversationId})
       });
-      const data = await res.json();
+      let data = null;
+      try{ data = await res.json(); }catch(_){ data = null; }
       removeTypingIndicator();
-      addAiMessage(data);
+      if(!res.ok || !data || data.error){
+        const msg = (data && data.error) ? data.error : `Server returned status ${res.status}.`;
+        addErrorMessage(`The assistant hit an error: ${msg}`);
+      }else{
+        addAiMessage(data);
+      }
     }catch(e){
       removeTypingIndicator();
       addErrorMessage('Something went wrong reaching the assistant. Please try again.');

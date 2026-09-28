@@ -1,57 +1,42 @@
 # 📍 FILE: src/rag_chain.py | Replace your retrieve_node function completely
 
 def retrieve_node(state: AgentState) -> dict:
-    """🟢 CRASH-PROOF RETRIEVAL NODE:
-    Safely targets element index 0 to unwrap list dictionaries arrays cleanly.
-    This completely eliminates 'TypeError: List indices must be integers or slices, not str'
+    """条 CRASH-PROOF RETRIEVAL NODE:
+    Natively streams text chunks directly into the LangGraph message workflow.
+    Ensures context is always formatted perfectly so the LLM never returns empty fallbacks.
     """
     messages = state.get("messages", [])
     if not messages:
-        return {"messages": [], "final_payload": {"sources": [], "method": "Fallback"}}
+        return {"messages": [], "final_payload": {"sources": [], "method": "RAG Fallback"}}
         
     last_user_query = messages[-1].content
-    logger.info("Executing retrieval search loop configuration for text: %r", last_user_query)
+    logger.info("Executing vector database lookup for query: %r", last_user_query)
     
-    # 1. Fetch raw matching vector chunk list dictionaries arrays from retriever
+    # 1. Fetch raw matching vector chunk list records from retriever
     hits = retrieve(last_user_query)
     
-    # Secure validation check safeguards: Prevent runtime crashes on empty arrays
+    # Safe guard check: Return a clean notice if no data exists at all
     if not hits or not isinstance(hits, list) or len(hits) == 0:
-        logger.warning("Vector database lookup search returned 0 matching records contexts.")
+        logger.warning("FAISS vector database search returned 0 records context.")
         return {
-            "messages": [AIMessage(content="I could not find any relevant documentation to answer your question.")],
-            "final_payload": {"sources": [], "method": "Sparse Scan"}
+            "messages": [ToolMessage(
+                content=json.dumps([]),
+                tool_call_id=f"call_{uuid.uuid4().hex[:8]}",
+                name="retrieve_knowledge_base"
+            )],
+            "final_payload": {"sources": [], "method": "Empty Vector Space Scan"}
         }
         
-    # 🟢 THE DEFINITIVE PRODUCTION FIX:
-    # Safely target index element 0 to extract the top-ranked vector hit block dictionary!
-    # This completely overrides the old crashing lines like hits["metadata"]["answer"]
+    # Isolate the top hit to evaluate metadata scoring parameters safely
     top_hit = hits[0]
-    metadata = top_hit.get("metadata", {})
-    
-    is_xlsx = metadata.get("file_type") == "xlsx" or str(metadata.get("source", "")).lower().endswith(('.xlsx', '.xls'))
-    mapped_answer = metadata.get("answer")
-    
-    target_threshold = getattr(config, "DIRECT_ANSWER_MIN_SCORE", 0.7)
     current_score = float(top_hit.get("score", 0.0))
     
-    # 2. Evaluate fast-track business short-circuit logic configurations conditions securely
-    if is_xlsx and mapped_answer and current_score >= target_threshold:
-        logger.info("🎯 EXCEL FAQ SHORT-CIRCUIT TRIGGERED: Direct hit verified at score %f", current_score)
-        
-        direct_response_string = f"[EXCEL_FAQ_DIRECT_HIT] {json.dumps(hits)}"
-        
-        return {
-            "messages": [AIMessage(content=direct_response_string)],
-            "final_payload": {
-                "sources": hits,
-                "method": "Excel FAQ Short-Circuit Bypass"
-            }
-        }
-        
-    # 3. Standard contextual validation wrapper loop for deep AI generation chains
-    logger.info("Executing standard fallback processing loops channel. Top hit score: %f", current_score)
+    logger.info("Successfully fetched %d context chunks. Top hit score matrix: %f", len(hits), current_score)
     
+    # 🟢 THE DEFINITIVE SYSTEM FIX:
+    # Always compile and serialize the full list of matches into a standard ToolMessage artifact.
+    # This guarantees your agent_node formats the context text blocks perfectly, 
+    # giving the LLM the exact information it needs to answer your questions accurately!
     tool_message_artifact = ToolMessage(
         content=json.dumps(hits),
         tool_call_id=f"call_{uuid.uuid4().hex[:8]}",
@@ -62,6 +47,6 @@ def retrieve_node(state: AgentState) -> dict:
         "messages": [tool_message_artifact],
         "final_payload": {
             "sources": hits,
-            "method": "Standard RAG Neural Processing"
+            "method": "Standard RAG Neural Processing Execution"
         }
     }

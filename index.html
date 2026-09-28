@@ -911,7 +911,8 @@
       removeTypingIndicator();
       if(!res.ok || !data || data.error){
         const msg = (data && data.error) ? data.error : `Server returned status ${res.status}.`;
-        addErrorMessage(`The assistant hit an error: ${msg}`);
+        const detail = (data && data.detail) ? `\nDetails: ${data.detail}` : '';
+        addErrorMessage(`The assistant hit an error: ${msg}${detail}`);
       }else{
         addAiMessage(data);
       }

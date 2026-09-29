@@ -88,3 +88,79 @@ if (sources.length) {
 
     bubbleCol.appendChild(sourceContainer);
 }
+
+
+.source-container {
+    margin-top: 10px;
+}
+
+
+/* Sources button */
+
+.source-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 6px 12px;
+
+    border: 1px solid #d9dce3;
+    border-radius: 16px;
+
+    background: #f5f6fa;
+
+    font-size: 13px;
+    font-family: inherit;
+
+    color: #444;
+
+    cursor: pointer;
+}
+
+.source-toggle:hover {
+    background: #e9ebf2;
+}
+
+
+/* Arrow */
+
+.source-arrow {
+    font-size: 10px;
+}
+
+
+/* Expanded source list */
+
+.source-list {
+    margin-top: 7px;
+
+    padding: 8px 10px;
+
+    background: #f8f9fb;
+
+    border: 1px solid #e2e4e9;
+    border-radius: 8px;
+
+    max-width: 350px;
+}
+
+
+/* Individual filename */
+
+.source-file {
+    display: block;
+
+    padding: 5px 4px;
+
+    color: #4056b4;
+
+    font-size: 13px;
+
+    text-decoration: none;
+
+    word-break: break-word;
+}
+
+.source-file:hover {
+    text-decoration: underline;
+}

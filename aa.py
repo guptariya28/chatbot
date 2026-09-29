@@ -1,17 +1,41 @@
-embeddings_model = AzureOpenAIEmbeddings(
-        azure_deployment="text-embedding-ada-002", # Change this to your exact embedding deployment name if different
-        openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15")
-    )
-    
-    # 5. Build and Save the True Local Single-Repository Cluster
-    vector_store = FAISS.from_documents(langchain_docs, embeddings_model)
-    
-    # Ensure the parent data folder exists before writing binary data records
-    os.makedirs(os.path.dirname(INDEX_PATH), exist_ok=True)
-    vector_store.save_local(INDEX_PATH)
-    
-    logger.info("🎉 SUCCESS! FAISS Vector DB binary assets compiled flawlessly at: %s", INDEX_PATH)
-    logger.info("Verified folder contents: Both 'index.faiss' and 'index.pkl' are built completely.")
+const sources = data.sources || [];
 
-if __name__ == "__main__":
-    main()
+if (sources.length) {
+    console.log("Sources received:", sources);
+
+    const srcRow = document.createElement("div");
+    srcRow.className = "sources-row";
+
+    sources.forEach((s) => {
+
+        // Backend keys
+        const filename = s.file_name || "Source";
+        const downloadUrl = s.download_url;
+
+        // If URL is missing, don't create broken link
+        if (!downloadUrl) {
+            console.warn("No download_url for source:", s);
+            return;
+        }
+
+        const a = document.createElement("a");
+
+        a.className = "source-chip";
+
+        // Use URL returned directly from backend
+        a.href = downloadUrl;
+
+        // Open source in new tab
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+
+        // Display file name
+        a.textContent = filename;
+
+        srcRow.appendChild(a);
+    });
+
+    if (srcRow.children.length > 0) {
+        bubbleCol.appendChild(srcRow);
+    }
+}

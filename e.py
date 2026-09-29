@@ -1,49 +1,39 @@
-import sqlite3
-# This is LangGraph's built-in serializer to unpack the binary data
-from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+import mysql.connector
+from mysql.connector import pooling
 
-DB_PATH = r"C:\Users\ashvish\My Notebook\Use Case 2026\Finance Chatot\rag_chatbott_latest_working\chat_history.db"
-serializer = JsonPlusSerializer()
+db_pool = pooling.MySQLConnectionPool(
+    pool_name="rag_chatbot_pool",
+    pool_size=5,
+    host="localhost",
+    user="root",
+    password="your_password",
+    database="rag_chatbot"
+)
 
-# Connect and grab the checkpoints
-conn = sqlite3.connect(DB_PATH)
-cursor = conn.cursor()
-cursor.execute("SELECT thread_id, checkpoint FROM checkpoints")
-rows = cursor.fetchall()
-conn.close()
 
-print(f"--- Printing Chat Logs for {len(rows)} Checkpoints ---\n")
+def test_connection():
+    conn = None
+    cursor = None
 
-for thread_id, raw_checkpoint in rows:
     try:
-        # Unpack the binary checkpoint into a readable dictionary
-        checkpoint_dict = serializer.loads(raw_checkpoint)
-        
-        # Pull out the channel data where messages live
-        channel_values = checkpoint_dict.get("channel_values", {})
-        messages = channel_values.get("messages", [])
-        
-        if messages:
-            print(f"🧵 [Thread ID: {thread_id}]")
-            for msg in messages:
-                # Check the class name or type of the message
-                msg_type = type(msg).__name__ if hasattr(msg, '__class__') else "Message"
-                
-                # Extract role and content safely
-                if hasattr(msg, 'content'):
-                    content = msg.content
-                elif isinstance(msg, dict):
-                    content = msg.get('content', '')
-                else:
-                    content = str(msg)
-                
-                # Format based on who sent it
-                if "Human" in msg_type or getattr(msg, 'type', '') == 'human':
-                    print(f"👤 User: {content}")
-                elif "AI" in msg_type or getattr(msg, 'type', '') == 'ai':
-                    print(f"🤖 AI  : {content}")
-            print("-" * 60)
-            
-    except Exception as e:
-        # Fallback if a specific row has a parsing issue
-        print(f"Could not parse checkpoint for thread {thread_id}: {e}")
+        conn = db_pool.get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT 1;")
+        result = cursor.fetchone()
+
+        print("Database connection successful!")
+        print("Result:", result)
+
+    except mysql.connector.Error as e:
+        print("Database connection failed:", e)
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+
+test_connection()

@@ -1,23 +1,12 @@
-if not raw_sources and "[EXCEL_FAQ_DIRECT_HIT]" in last_ai_message:
-            try:
-                # Extract the raw serialized JSON tracking blocks hidden inside the message string
-                json_str = last_ai_message.split("[EXCEL_FAQ_DIRECT_HIT]")[-1].strip()
-                direct_hit_data = json.loads(json_str)
-                if isinstance(direct_hit_data, dict):
-                    raw_sources = [direct_hit_data]
-                elif isinstance(direct_hit_data, list):
-                    raw_sources = direct_hit_data
-            except Exception:
-                logger.warning("Failed to automatically unwrap hidden short-circuit source payloads.")
+import socket
 
-    except Exception as e:
-        logger.error("Graph execution failure exception: %s", str(e), exc_info=True)
-        return jsonify({"error": "Internal graph execution processing failed."}), 500
-        
-    # Compile the final raw sources array using the exact format alignment function
-    compiled_sources_chips = _format_sources(raw_sources)
-    
-    # Clean up the display string answer message to shield technical JSON arrays from user view
-    clean_display_answer = last_ai_message
-    if "[EXCEL_FAQ_DIRECT_HIT]" in clean_display_answer:
-        clean_display_answer = clean_display_answer.split("[EXCEL_FAQ_DIRECT_HIT]")[0].strip()
+host = "://azure.com"
+
+try:
+    print(f"Testing DNS resolution for {host}...")
+    ip = socket.gethostbyname(host)
+    print(f"Success! Server IP address is: {ip}")
+except socket.gaierror as e:
+    print(f"\n❌ Connection Blocked: Your computer cannot find this server on the internet.")
+    print(f"Error Details: {e}")
+    print("\nPlease verify that the Server Name is spelled correctly in the Azure Portal.")

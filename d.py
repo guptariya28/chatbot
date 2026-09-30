@@ -1,254 +1,133 @@
-import csv
-import os
+import atexit
 import fcntl
-from datetime import datetime, timezone
+import logging
+import os
+import threading
+import time
 
-from csv_logger import (
-    CHAT_LOG_FILE_PATH,
-    FEEDBACK_LOG_FILE_PATH,
-    CHAT_LOG_COLUMNS,
-    FEEDBACK_COLUMNS
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask, jsonify
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(process)d] %(levelname)s %(name)s: %(message)s",
 )
+log = logging.getLogger("app")
 
-from db_connection import db_pool   # change based on your DB file name
+LOCK_PATH = "/tmp/apscheduler.lock"
+RETRY_SECONDS = 300  # how often non-owner workers re-check the lock
+
+app = Flask(__name__)
+
+_scheduler = None      # set only in the worker that owns the lock
+_lock_file = None      # must stay referenced or the flock is released
+_next_attempt = 0.0    # monotonic time of next allowed lock attempt
+_state_lock = threading.Lock()
 
 
-def parse_timestamp(value):
-    """
-    Convert timestamp from CSV into a MySQL-compatible datetime.
-    """
-
-    if not value:
-        return datetime.now(timezone.utc).replace(tzinfo=None)
-
-    value = str(value).strip()
-
+# --------------------------------------------------------------------------
+# Your job
+# --------------------------------------------------------------------------
+def nightly_job():
+    log.info("nightly_job started (pid=%s)", os.getpid())
     try:
-        # Handles:
-        # 2026-09-30T06:30:00+00:00
-        # 2026-09-30T06:30:00Z
-        # 2026-09-30 12:00:00
-        dt = datetime.fromisoformat(
-            value.replace("Z", "+00:00")
-        )
-
-        # Convert timezone-aware datetime to UTC
-        if dt.tzinfo is not None:
-            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
-
-        return dt
-
-    except ValueError:
-        raise ValueError(
-            f"Invalid timestamp format: {value}"
-        )
+        # TODO: put your real work here
+        pass
+        log.info("nightly_job finished")
+    except Exception:
+        log.exception("nightly_job failed")
 
 
-def push_csv_to_db(csv_path, table_name, columns):
-    """
-    Push CSV rows into MySQL.
+# --------------------------------------------------------------------------
+# Scheduler startup (one worker wins the file lock)
+# --------------------------------------------------------------------------
+def try_start_scheduler():
+    """Return True if this worker owns the scheduler. Cheap to call often."""
+    global _scheduler, _lock_file, _next_attempt
 
-    - Uses file locking for Flask + cron process safety
-    - Processes rows individually
-    - One failed row does not stop other rows
-    - Successful rows are removed from CSV
-    - Failed rows remain in CSV
-    - CSV header is preserved
-    """
+    if _scheduler is not None:
+        return True
+    if time.monotonic() < _next_attempt:
+        return False
 
-    if not os.path.exists(csv_path):
-        print(f"CSV not found: {csv_path}")
-        return
+    with _state_lock:
+        if _scheduler is not None:
+            return True
+        if time.monotonic() < _next_attempt:
+            return False
 
-    conn = None
-    cursor = None
-
-    # r+ allows us to read and rewrite the same file
-    with open(
-        csv_path,
-        "r+",
-        newline="",
-        encoding="utf-8-sig"
-    ) as csv_file:
-
-        # ---------------------------------
-        # Acquire exclusive OS-level lock
-        # ---------------------------------
-        fcntl.flock(
-            csv_file.fileno(),
-            fcntl.LOCK_EX
-        )
-
+        lock = open(LOCK_PATH, "w")
         try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            lock.close()
+            _next_attempt = time.monotonic() + RETRY_SECONDS
+            return False
 
-            # ---------------------------------
-            # Read CSV
-            # ---------------------------------
-
-            csv_file.seek(0)
-
-            reader = csv.DictReader(csv_file)
-
-            rows = list(reader)
-
-            if not rows:
-                print(f"No data in {csv_path}")
-                return
-
-            # ---------------------------------
-            # Build generic INSERT
-            # ---------------------------------
-
-            column_names = ", ".join(columns)
-
-            placeholders = ", ".join(
-                ["%s"] * len(columns)
-            )
-
-            query = f"""
-                INSERT INTO {table_name}
-                ({column_names})
-                VALUES ({placeholders})
-            """
-
-            failed_rows = []
-
-            success_count = 0
-            failed_count = 0
-
-            # ---------------------------------
-            # Get ONE DB connection
-            # ---------------------------------
-
-            conn = db_pool.get_connection()
-            cursor = conn.cursor()
-
-            # ---------------------------------
-            # Process each row
-            # ---------------------------------
-
-            for row in rows:
-
-                try:
-
-                    values = []
-
-                    for column in columns:
-
-                        value = row.get(column)
-
-                        # Handle timestamp
-                        if column == "created_at":
-                            value = parse_timestamp(value)
-
-                        values.append(value)
-
-                    # -------------------------
-                    # Insert one row
-                    # -------------------------
-
-                    cursor.execute(
-                        query,
-                        tuple(values)
-                    )
-
-                    conn.commit()
-
-                    success_count += 1
-
-                except Exception as e:
-
-                    # Rollback ONLY current row
-                    conn.rollback()
-
-                    failed_rows.append(row)
-
-                    failed_count += 1
-
-                    print(
-                        f"FAILED | "
-                        f"message_id={row.get('message_id')} | "
-                        f"error={e}"
-                    )
-
-            # ---------------------------------
-            # Rewrite CSV
-            # ---------------------------------
-            # Keep only failed rows
-
-            csv_file.seek(0)
-
-            writer = csv.DictWriter(
-                csv_file,
-                fieldnames=columns,
-                quoting=csv.QUOTE_ALL
-            )
-
-            writer.writeheader()
-
-            if failed_rows:
-                writer.writerows(failed_rows)
-
-            # Remove old leftover content
-            csv_file.truncate()
-
-            csv_file.flush()
-
-            # Force OS to write changes
-            os.fsync(csv_file.fileno())
-
-            print(
-                f"{table_name} completed | "
-                f"Success: {success_count} | "
-                f"Failed: {failed_count}"
-            )
-
-        except Exception as e:
-
-            if conn:
-                conn.rollback()
-
-            print(
-                f"Error processing {csv_path}: {e}"
-            )
-
-        finally:
-
-            if cursor:
-                cursor.close()
-
-            if conn:
-                conn.close()
-
-            # Release file lock
-            fcntl.flock(
-                csv_file.fileno(),
-                fcntl.LOCK_UN
-            )
+        _lock_file = lock
+        sched = BackgroundScheduler(timezone="UTC")
+        sched.add_job(
+            nightly_job,
+            trigger="cron",
+            hour=2,
+            minute=0,
+            id="nightly",
+            replace_existing=True,
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=300,
+        )
+        sched.start()
+        _scheduler = sched
+        atexit.register(_shutdown)
+        log.info("Scheduler started in pid=%s", os.getpid())
+        return True
 
 
-def main():
+def _shutdown():
+    global _scheduler, _lock_file
+    if _scheduler is not None:
+        _scheduler.shutdown(wait=False)
+        _scheduler = None
+    if _lock_file is not None:
+        try:
+            fcntl.flock(_lock_file, fcntl.LOCK_UN)
+            _lock_file.close()
+        except Exception:
+            pass
+        _lock_file = None
 
-    # ---------------------------------
-    # Chat logs
-    # ---------------------------------
 
-    push_csv_to_db(
-        csv_path=CHAT_LOG_FILE_PATH,
-        table_name="FINANCE_CHAT_LOGS",
-        columns=CHAT_LOG_COLUMNS
-    )
+# Try at import time (each gunicorn worker imports the app, no --preload),
+# and retry lazily on requests in case the owner worker dies.
+try_start_scheduler()
 
-    # ---------------------------------
-    # Feedback logs
-    # ---------------------------------
 
-    push_csv_to_db(
-        csv_path=FEEDBACK_LOG_FILE_PATH,
-        table_name="FINANCE_FEEDBACK_LOGS",
-        columns=FEEDBACK_COLUMNS
+@app.before_request
+def ensure_scheduler():
+    try_start_scheduler()
+
+
+# --------------------------------------------------------------------------
+# Routes
+# --------------------------------------------------------------------------
+@app.route("/")
+def index():
+    return "ok"
+
+
+@app.route("/scheduler-status")
+def scheduler_status():
+    return jsonify(
+        pid=os.getpid(),
+        owns_scheduler=_scheduler is not None,
+        jobs=[
+            {"id": j.id, "next_run": str(j.next_run_time)}
+            for j in (_scheduler.get_jobs() if _scheduler else [])
+        ],
     )
 
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=False)
+ 

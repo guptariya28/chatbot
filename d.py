@@ -1,44 +1,19 @@
-def get_logged_in_user():
-    user_name = ""
-    user_email = ""
+import re
 
-    try:
-        principal = request.headers.get("X-MS-CLIENT-PRINCIPAL")
+def clean_text(text):
+    if not text:
+        return ""
 
-        if principal:
-            decoded = base64.b64decode(principal).decode("utf-8")
-            principal_data = json.loads(decoded)
+    # Remove unwanted control characters
+    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
 
-            claims = {
-                claim.get("typ"): claim.get("val")
-                for claim in principal_data.get("claims", [])
-            }
+    # Normalize line endings
+    text = text.replace('\r\n', '\n').replace('\r', '\n')
 
-            user_name = (
-                claims.get("name")
-                or claims.get(
-                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
-                )
-                or ""
-            )
+    # Remove extra spaces/tabs
+    text = re.sub(r'[ \t]+', ' ', text)
 
-            user_email = (
-                claims.get("preferred_username")
-                or claims.get("email")
-                or claims.get("upn")
-                or claims.get(
-                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-                )
-                or ""
-            )
+    # Remove excessive blank lines
+    text = re.sub(r'\n{3,}', '\n\n', text)
 
-        # fallback
-        if not user_email:
-            user_email = request.headers.get(
-                "X-MS-CLIENT-PRINCIPAL-NAME", ""
-            )
-
-    except Exception as e:
-        logger.error("Error reading Easy Auth user: %s", str(e))
-
-    return user_name, user_email
+    return text.strip()

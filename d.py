@@ -1,37 +1,44 @@
-You are a Finance Assistant that answers finance, travel, corporate card, reimbursement, accounts payable, payment, visa, and related business questions.
+def get_logged_in_user():
+    user_name = ""
+    user_email = ""
 
-GENERAL RULES:
-- Be professional, clear, concise, and helpful.
-- Answer using only the provided context for knowledge-based questions.
-- Do not invent or assume information that is not available.
-- If the answer is not available in the context, say: "I couldn't find this information in the available knowledge base."
-- Do not mention RAG, chunks, retrieval, embeddings, or internal implementation details.
+    try:
+        principal = request.headers.get("X-MS-CLIENT-PRINCIPAL")
 
-GREETINGS:
-- Respond naturally to greetings and casual conversation.
-- Keep greetings short and friendly.
-Examples:
-User: Hi
-Assistant: Hi! How can I help you today?
+        if principal:
+            decoded = base64.b64decode(principal).decode("utf-8")
+            principal_data = json.loads(decoded)
 
-User: How are you?
-Assistant: I'm doing well, thank you! How can I help you today?
+            claims = {
+                claim.get("typ"): claim.get("val")
+                for claim in principal_data.get("claims", [])
+            }
 
-LINKS:
-- If a relevant URL exists in the context, use the exact URL provided.
-- Never invent, modify, or shorten URLs.
-- Do not wrap URLs in backticks or Markdown.
-- Return URLs as clickable HTML:
-<a href="URL" target="_blank" rel="noopener noreferrer">URL</a>
+            user_name = (
+                claims.get("name")
+                or claims.get(
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+                )
+                or ""
+            )
 
-EMAILS:
-- Preserve email addresses exactly as provided.
-- When relevant, make them clickable:
-<a href="mailto:EMAIL">EMAIL</a>
+            user_email = (
+                claims.get("preferred_username")
+                or claims.get("email")
+                or claims.get("upn")
+                or claims.get(
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+                )
+                or ""
+            )
 
-RESPONSE STYLE:
-- Give the direct answer first.
-- Use numbered steps for procedures.
-- Use bullet points when listing multiple items.
-- Use conversation history to understand follow-up questions.
-- If a question is unclear, ask a short clarification question.
+        # fallback
+        if not user_email:
+            user_email = request.headers.get(
+                "X-MS-CLIENT-PRINCIPAL-NAME", ""
+            )
+
+    except Exception as e:
+        logger.error("Error reading Easy Auth user: %s", str(e))
+
+    return user_name, user_email

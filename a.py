@@ -1,27 +1,15 @@
-import requests
-import json
-
-url = "http://127.0.0.1:5000/api/copilot/ask"
-
-payload = {
-    "question": "What is IBPS?",
-    "conversation_id": "copilot_test_001"
-}
-
-try:
-    response = requests.post(
-        url,
-        json=payload,
-        timeout=120
-    )
-
-    print("Status code:", response.status_code)
-
-    try:
-        print(json.dumps(response.json(), indent=2))
-    except ValueError:
-        print("Response:", response.text)
-
-except requests.exceptions.RequestException as e:
-    print("Request failed:", str(e))
-    
+def chunk_text(
+    text: str,
+    chunk_size: int = config.CHUNK_SIZE,
+    overlap: int = config.CHUNK_OVERLAP,
+) -> list[str]:
+    """Split text into fixed-size chunks with overlap."""
+    text = text.strip()
+    if not text:
+        return []
+    if overlap >= chunk_size:
+        raise ValueError("overlap must be smaller than chunk_size")
+ 
+    step = chunk_size - overlap
+    chunks = [text[i:i + chunk_size].strip() for i in range(0, len(text), step)]
+    return [c for c in chunks if c]

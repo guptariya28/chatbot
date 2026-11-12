@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <section class="card">
+    <div class="card-head">
+      <h3>Non-AOP requests raised in the portal</h3>
+      {% if can_raise %}
+        <a class="primary-button" href="/new-request">+ New Non-AOP request</a>
+      {% endif %}
+    </div>
+
+    {% if rows|length == 0 %}
+      <p class="muted">No requests yet.</p>
+    {% else %}
+      <table class="big-table">
+        <tr>
+          <th>Requirement</th><th>Reporter</th><th>Tech Module</th><th>IO Lead</th>
+          <th class="num">Man-days</th><th>Status</th><th></th>
+        </tr>
+        {% for row in rows %}
+          {% set status = row["Request Status"] %}
+          <tr>
+            <td class="wide"><a href="/edit/{{ row.id }}">{{ row["Requirement/CR/New Demand Item"] }}</a></td>
+            <td>{{ row["Reporter"] }}</td>
+            <td>{{ row["Module.1"] }}</td>
+            <td>{{ row["IO Lead"] }}</td>
+            <td class="num">{{ row["Total Effort (Man-Days)"] }}</td>
+            <td><span class="badge
+              {% if status == 'Approved' %}badge-good{% elif status == 'Rejected' %}badge-not{% else %}badge-must{% endif %}">{{ status }}</span></td>
+            <td>
+              {% if user.role == "admin" and status == "Pending review" %}
+                <form method="post" action="/approve/{{ row.id }}" class="inline"><button class="ok-button">Approve</button></form>
+                <form method="post" action="/reject/{{ row.id }}" class="inline"><button class="no-button">Reject</button></form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+  </section>
+
+{% endblock %}

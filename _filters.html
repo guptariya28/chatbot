@@ -1,0 +1,16 @@
+<!-- Filter bar. method="get" puts the choices in the web address:  ?io_lead=Ravi S -->
+<form class="filter-bar" method="get">
+  <input type="text" name="search" value="{{ chosen.search }}" placeholder="Search requirement, JIRA, topic, SI No">
+
+  {% for filter in filters %}
+    <select name="{{ filter.name }}">
+      <option value="">{{ filter.all_text }}</option>
+      {% for value in filter_options[filter.name] %}
+        <option {% if value|lower == chosen[filter.name]|lower %}selected{% endif %}>{{ value }}</option>
+      {% endfor %}
+    </select>
+  {% endfor %}
+
+  <button type="submit">Apply</button>
+  <a class="clear-link" href="?">Clear</a>
+</form>

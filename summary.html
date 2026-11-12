@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <!-- ===== Big numbers ===== -->
+  <section class="kpi-row">
+    <div class="kpi purple">
+      <div class="kpi-label">Required FTE</div>
+      <div class="kpi-value">{{ "%.2f"|format(result.required_fte) }}</div>
+      <div class="kpi-note">{{ result.scope_count }} items</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Available FTE</div>
+      <div class="kpi-value">{{ "%.2f"|format(result.available_fte) }}</div>
+      {% if result.available_man_days == 0 %}<div class="kpi-note">not entered yet</div>{% endif %}
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">Deficit FTE</div>
+      <div class="kpi-value">{{ "%.2f"|format(result.deficit_fte) }}</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Packaging possible (MS/MT)</div>
+      <div class="kpi-value">{{ "%.2f"|format(result.package_fte) }}</div>
+      <div class="kpi-note">{{ result.package_count }} items</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Deficit after packaging</div>
+      <div class="kpi-value">{{ "%.2f"|format(result.deficit_after_package_fte) }}</div>
+    </div>
+  </section>
+
+  <!-- ===== How every number is calculated ===== -->
+  <section class="card">
+    <h3>How these numbers are calculated</h3>
+    <ol class="math">
+      <li><b>Which items count?</b> Business Confirmation = <i>Must to Have</i>,
+          Tech Module is one of the ticked modules, Delivery Date is one of the ticked values
+          (same as the filters of the Excel pivot). &rarr; <b>{{ result.scope_count }} items</b></li>
+      <li><b>Required</b> = sum of Total Effort of those items
+          = {{ "{:,.1f}".format(result.required_man_days) }} man-days
+          &divide; {{ result.per_fte|round(2) }}
+          = <b>{{ "%.2f"|format(result.required_fte) }} FTE</b></li>
+      <li><b>Available</b> = {{ "{:,.1f}".format(result.available_man_days) }} man-days
+          &divide; {{ result.per_fte|round(2) }}
+          = <b>{{ "%.2f"|format(result.available_fte) }} FTE</b>
+          <span class="muted">(typed by PMO below; will come from the FTE sheet later)</span></li>
+      <li><b>Deficit</b> = Available &minus; Required
+          = {{ "{:,.1f}".format(result.deficit_man_days) }} man-days
+          = <b>{{ "%.2f"|format(result.deficit_fte) }} FTE</b></li>
+      <li><b>Packaging possible</b> = items above marked <i>MS/MT PKG</i>
+          = {{ "{:,.1f}".format(result.package_man_days) }} man-days
+          &divide; {{ result.per_fte|round(2) }}
+          = <b>{{ "%.2f"|format(result.package_fte) }} FTE</b></li>
+      <li><b>Deficit after packaging</b> = Deficit + Packaging
+          = {{ "%.2f"|format(result.deficit_fte) }} + {{ "%.2f"|format(result.package_fte) }}
+          = <b>{{ "%.2f"|format(result.deficit_after_package_fte) }} FTE</b></li>
+      <li><b>Delivered before April 2026</b> (Must to Have, dates in 2025 or Jan&ndash;Mar 2026):
+          {{ result.before_count }} items, {{ "{:,.1f}".format(result.before_man_days) }} man-days
+          = <b>{{ "%.2f"|format(result.before_fte) }} FTE</b></li>
+      <li><b>Dropped</b> (Must to Have, Delivery Date = "Drop"):
+          {{ result.dropped_count }} items, {{ "{:,.1f}".format(result.dropped_man_days) }} man-days
+          = <b>{{ "%.2f"|format(result.dropped_fte) }} FTE</b></li>
+    </ol>
+  </section>
+
+  <!-- ===== Pivot-like cards ===== -->
+  <section class="card-grid">
+    {% for card in cards %}
+      {% include "_card.html" %}
+    {% endfor %}
+  </section>
+
+  <!-- ===== Settings (the pivot filter ticks) ===== -->
+  <section class="card">
+    <h3>Settings {% if user.role != "admin" %}<span class="muted">(only PMO Admin can change)</span>{% endif %}</h3>
+
+    <form method="post" action="/summary/settings" class="settings-form">
+      <fieldset {% if user.role != "admin" %}disabled{% endif %}>
+
+        <label>Man-days per FTE
+          <input type="number" step="any" name="man_days_per_fte" value="{{ settings.man_days_per_fte }}">
+        </label>
+
+        <label>Available capacity (man-days)
+          <input type="number" step="any" name="available_man_days" value="{{ settings.available_man_days }}">
+        </label>
+
+        <div class="check-group">
+          <b>Tech Modules counted</b>
+          {% for module in settings.all_modules %}
+            <label class="check">
+              <input type="checkbox" name="modules" value="{{ module }}"
+                     {% if module in settings.included_modules %}checked{% endif %}> {{ module }}
+            </label>
+          {% endfor %}
+        </div>
+
+        <div class="check-group">
+          <b>Delivery Date values counted</b>
+          {% for delivery in settings.all_deliveries %}
+            <label class="check">
+              <input type="checkbox" name="deliveries" value="{{ delivery }}"
+                     {% if delivery in settings.included_deliveries %}checked{% endif %}> {{ delivery }}
+            </label>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="primary-button">Save settings</button>
+      </fieldset>
+    </form>
+  </section>
+
+{% endblock %}

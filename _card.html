@@ -1,0 +1,57 @@
+<!-- One chart card: bars (chart) + the same numbers as a table -->
+<div class="card">
+  <div class="card-head">
+    <h3>{{ card.title }}</h3>
+    <div class="toggle">
+      <button id="{{ card.id }}-chart-button" class="active" onclick="showView('{{ card.id }}', 'chart')">Chart</button>
+      <button id="{{ card.id }}-table-button" onclick="showView('{{ card.id }}', 'table')">Table</button>
+    </div>
+  </div>
+
+  {% if card.groups|length == 0 %}
+    <p class="muted">No items.</p>
+  {% endif %}
+
+  <!-- Chart view: one bar per group. Bar width = percent from Python. -->
+  <div id="{{ card.id }}-chart" class="bars">
+    {% for group in card.groups %}
+      <a class="bar-row" {% if group.link %}href="{{ group.link }}"{% endif %}>
+        <span class="bar-label">{{ group.label }}</span>
+        <span class="bar-track"><span class="bar color-{{ loop.index0 % 8 }}" style="width: {{ group.percent }}%"></span></span>
+        <span class="bar-value">{{ group.value_text }}</span>
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Table view (hidden at first) -->
+  <div id="{{ card.id }}-table" hidden>
+    <table class="mini-table">
+      <tr>
+        <th>Name</th>
+        <th class="num">Items</th>
+        <th class="num">Count of JIRA</th>
+        <th class="num">Man-days</th>
+        <th class="num">MS/MT PKG</th>
+        <th class="num">FTE</th>
+      </tr>
+      {% for group in card.groups %}
+        <tr>
+          <td>{% if group.link %}<a href="{{ group.link }}">{{ group.label }}</a>{% else %}{{ group.label }}{% endif %}</td>
+          <td class="num">{{ group.count }}</td>
+          <td class="num">{{ group.jira_count }}</td>
+          <td class="num">{{ "{:,.0f}".format(group.man_days) }}</td>
+          <td class="num">{{ group.packages }}</td>
+          <td class="num">{{ "%.2f"|format(group.fte) }}</td>
+        </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td>Grand Total</td>
+        <td class="num">{{ card.totals.count }}</td>
+        <td class="num">{{ card.totals.jira_count }}</td>
+        <td class="num">{{ "{:,.0f}".format(card.totals.man_days) }}</td>
+        <td class="num">{{ card.totals.packages }}</td>
+        <td class="num">{{ "%.2f"|format(card.totals.fte) }}</td>
+      </tr>
+    </table>
+  </div>
+</div>

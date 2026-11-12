@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MBBP 2026 Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <!-- ===== Top bar ===== -->
+  <header class="top-bar">
+    <div class="brand">MBBP 2026 Demand Portal</div>
+
+    <form class="role-form" method="post" action="/set-role">
+      <span>Viewing as</span>
+      <select name="role">
+        {% for role in roles %}
+          <option value="{{ role.value }}" {% if role.value == user.role %}selected{% endif %}>{{ role.label }}</option>
+        {% endfor %}
+      </select>
+      <select name="io_lead_name">
+        {% for name in io_lead_names %}
+          <option {% if name == user.name %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Switch</button>
+      <a class="top-button" href="/download">Download Excel</a>
+    </form>
+  </header>
+
+  <!-- ===== Tabs ===== -->
+  <nav class="tabs">
+    <a href="/" class="{% if page == 'dashboard' %}active{% endif %}">Dashboard</a>
+    <a href="/register" class="{% if page == 'register' %}active{% endif %}">Demand Register</a>
+    <a href="/summary" class="{% if page == 'summary' %}active{% endif %}">FTE Summary</a>
+    <a href="/requests" class="{% if page == 'requests' %}active{% endif %}">
+      Non-AOP Requests {% if pending_count > 0 %}<span class="count-bubble">{{ pending_count }}</span>{% endif %}
+    </a>
+    <a href="/log" class="{% if page == 'log' %}active{% endif %}">Change Log</a>
+    <span class="who">{{ user.name }}</span>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- The only JavaScript: switch a card between Chart and Table -->
+  <script>
+    function showView(cardId, view) {
+      document.getElementById(cardId + "-chart").hidden = (view !== "chart");
+      document.getElementById(cardId + "-table").hidden = (view !== "table");
+      document.getElementById(cardId + "-chart-button").classList.toggle("active", view === "chart");
+      document.getElementById(cardId + "-table-button").classList.toggle("active", view === "table");
+    }
+  </script>
+</body>
+</html>

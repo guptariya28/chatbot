@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <p><a href="/requests">&larr; Back to requests</a></p>
+
+  <section class="card">
+    <h3>New Non-AOP request</h3>
+    <p class="muted">A new requirement from the business. It is saved as "Pending review" until the PMO approves it.</p>
+
+    <form method="post" class="edit-form">
+      <label class="full"><span>Requirement *</span>
+        <input type="text" name="requirement" required></label>
+
+      <label><span>Topic Group</span>
+        <input type="text" name="topic" list="topic-list"></label>
+      <datalist id="topic-list">{% for v in options.topic %}<option value="{{ v }}">{% endfor %}</datalist>
+
+      <label><span>Tech Module</span>
+        <input type="text" name="module" list="module-list"></label>
+      <datalist id="module-list">{% for v in options.module %}<option value="{{ v }}">{% endfor %}</datalist>
+
+      <label><span>IO Lead</span>
+        <input type="text" name="io_lead" list="iolead-list"></label>
+      <datalist id="iolead-list">{% for v in options.io_lead %}<option value="{{ v }}">{% endfor %}</datalist>
+
+      <label><span>Business E4 Manager</span>
+        <input type="text" name="e4_manager" list="e4-list"></label>
+      <datalist id="e4-list">{% for v in options.e4_manager %}<option value="{{ v }}">{% endfor %}</datalist>
+
+      <label><span>Business Confirmation</span>
+        <input type="text" name="confirmation" list="confirmation-list"></label>
+      <datalist id="confirmation-list">{% for v in options.confirmation %}<option value="{{ v }}">{% endfor %}</datalist>
+
+      <label><span>Reporter *</span>
+        <input type="text" name="reporter" required></label>
+
+      <label><span>Development (Man-Days)</span>
+        <input type="number" step="any" min="0" name="dev_days"></label>
+
+      <label><span>Functional (Man-Days)</span>
+        <input type="number" step="any" min="0" name="func_days"></label>
+
+      <label><span>Planned Delivery (e.g. Aug' 26)</span>
+        <input type="text" name="delivery"></label>
+
+      <label class="full"><span>Comments</span>
+        <input type="text" name="comments"></label>
+
+      <button type="submit" class="primary-button">Submit request</button>
+    </form>
+  </section>
+
+{% endblock %}

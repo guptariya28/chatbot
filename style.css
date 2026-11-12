@@ -1,0 +1,514 @@
+/* ============================================================
+   style.css - the look of every page (no logic here)
+   ============================================================ */
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f3f5f8;
+  color: #1f2933;
+  font-size: 14px;
+}
+
+main {
+  padding: 18px 24px 40px;
+}
+
+a {
+  color: #1f5fa8;
+}
+
+h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.muted {
+  color: #6b7785;
+  font-weight: normal;
+}
+
+
+/* ---------- Top bar ---------- */
+.top-bar {
+  background: #1f4e79;
+  color: white;
+  padding: 10px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.role-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.role-form select,
+.role-form button,
+.top-button {
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: none;
+  font-size: 13px;
+}
+
+.top-button {
+  background: #f2b84b;
+  color: #1f2933;
+  text-decoration: none;
+  margin-left: 6px;
+}
+
+
+/* ---------- Tabs ---------- */
+.tabs {
+  background: white;
+  border-bottom: 1px solid #dde3ea;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tabs a {
+  padding: 12px 14px;
+  text-decoration: none;
+  color: #4b5563;
+  border-bottom: 3px solid transparent;
+}
+
+.tabs a.active {
+  color: #1f4e79;
+  border-bottom-color: #1f4e79;
+  font-weight: bold;
+}
+
+.who {
+  margin-left: auto;
+  color: #6b7785;
+  font-size: 13px;
+}
+
+.count-bubble {
+  background: #d9483b;
+  color: white;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+}
+
+
+/* ---------- Filter bar ---------- */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.filter-bar input,
+.filter-bar select,
+.filter-bar button {
+  padding: 7px 9px;
+  border: 1px solid #c8d0da;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+}
+
+.filter-bar input {
+  width: 240px;
+}
+
+.filter-bar button {
+  background: #1f4e79;
+  color: white;
+  border-color: #1f4e79;
+  cursor: pointer;
+}
+
+
+/* ---------- KPI cards ---------- */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.kpi {
+  background: white;
+  border-radius: 10px;
+  padding: 14px 16px;
+  border-left: 5px solid #2f6fb5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.kpi.blue   { border-left-color: #2f6fb5; }
+.kpi.purple { border-left-color: #7b5cc4; }
+.kpi.red    { border-left-color: #d9483b; }
+.kpi.green  { border-left-color: #1e8a5a; }
+.kpi.orange { border-left-color: #d9822b; }
+
+.kpi-label {
+  font-size: 12px;
+  color: #5f6b7a;
+}
+
+.kpi-value {
+  font-size: 26px;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+.kpi-note {
+  font-size: 12px;
+  color: #6b7785;
+}
+
+
+/* ---------- Cards ---------- */
+.card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+}
+
+.card-grid .card {
+  margin-bottom: 0;
+}
+
+.card-grid {
+  margin-bottom: 16px;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.card-head h3 {
+  margin: 0;
+}
+
+
+/* ---------- Chart / Table switch ---------- */
+.toggle button {
+  border: 1px solid #c8d0da;
+  background: white;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.toggle button:first-child {
+  border-radius: 5px 0 0 5px;
+}
+
+.toggle button:last-child {
+  border-radius: 0 5px 5px 0;
+}
+
+.toggle button.active {
+  background: #1f4e79;
+  color: white;
+  border-color: #1f4e79;
+}
+
+
+/* ---------- Bars (the "chart") ---------- */
+.bars {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 60px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 4px;
+}
+
+a.bar-row[href]:hover {
+  background: #eef5ff;
+}
+
+.bar-label {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-track {
+  background: #eef1f5;
+  border-radius: 4px;
+  height: 16px;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  min-width: 2px;
+}
+
+.bar-value {
+  font-size: 12px;
+  font-weight: bold;
+  text-align: right;
+}
+
+.color-0 { background: #2f6fb5; }
+.color-1 { background: #d9622b; }
+.color-2 { background: #1e8a5a; }
+.color-3 { background: #b7791f; }
+.color-4 { background: #7b5cc4; }
+.color-5 { background: #c0392b; }
+.color-6 { background: #2a9d8f; }
+.color-7 { background: #5f6b7a; }
+
+
+/* ---------- Tables ---------- */
+.table-box {
+  overflow: auto;
+  max-height: 65vh;
+}
+
+.mini-table,
+.big-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.mini-table th,
+.big-table th {
+  background: #1f4e79;
+  color: white;
+  text-align: left;
+  padding: 7px 9px;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+}
+
+.mini-table td,
+.big-table td {
+  padding: 6px 9px;
+  border-bottom: 1px solid #e6eaf0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.big-table tr:hover td {
+  background: #f4f8ff;
+}
+
+.num {
+  text-align: right;
+}
+
+.wide {
+  min-width: 260px;
+  max-width: 420px;
+  white-space: normal !important;
+}
+
+.total-row td {
+  font-weight: bold;
+  background: #eef2f7;
+}
+
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.badge-must  { background: #fde2e1; color: #b42318; }
+.badge-good  { background: #dcfce7; color: #166534; }
+.badge-not   { background: #e5e7eb; color: #4b5563; }
+.badge-other { background: #e0ecff; color: #1e4f91; }
+
+
+/* ---------- Buttons and links ---------- */
+.primary-button {
+  background: #1f4e79;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.edit-link {
+  font-weight: bold;
+}
+
+.view-link {
+  color: #6b7785;
+}
+
+.inline {
+  display: inline;
+}
+
+.ok-button,
+.no-button {
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+
+.ok-button { background: #1e8a5a; }
+.no-button { background: #c0392b; }
+
+
+/* ---------- Forms (edit, new request) ---------- */
+.edit-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px 18px;
+}
+
+.edit-form label span {
+  display: block;
+  font-size: 12px;
+  color: #5f6b7a;
+  margin-bottom: 3px;
+}
+
+.edit-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid #c8d0da;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.edit-form input:disabled {
+  background: #f3f5f8;
+  color: #4b5563;
+}
+
+.edit-form .full {
+  grid-column: 1 / -1;
+}
+
+.edit-form button {
+  justify-self: start;
+}
+
+.calculated {
+  grid-column: 1 / -1;
+  background: #f3f5f8;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.saved-message {
+  background: #dcfce7;
+  color: #166534;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.history-line {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+
+/* ---------- FTE Summary ---------- */
+.math li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.settings-form fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-form > fieldset > label {
+  display: inline-block;
+  margin: 0 18px 12px 0;
+  font-size: 13px;
+}
+
+.settings-form input[type="number"] {
+  display: block;
+  margin-top: 3px;
+  padding: 6px 8px;
+  border: 1px solid #c8d0da;
+  border-radius: 6px;
+  width: 180px;
+}
+
+.check-group {
+  margin-bottom: 12px;
+}
+
+.check-group b {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.check {
+  display: inline-block;
+  margin: 2px 14px 2px 0;
+  font-size: 13px;
+}
+
+
+/* ---------- Small screens ---------- */
+@media (max-width: 700px) {
+  main {
+    padding: 14px 16px 30px;
+  }
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  .bar-row {
+    grid-template-columns: 100px 1fr 50px;
+  }
+}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+  {% include "_filters.html" %}
+
+  <!-- KPI cards -->
+  <section class="kpi-row">
+    <div class="kpi blue">
+      <div class="kpi-label">Items</div>
+      <div class="kpi-value">{{ kpis.item_count }}</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-label">Total effort</div>
+      <div class="kpi-value">{{ "{:,.0f}".format(kpis.man_days) }}</div>
+      <div class="kpi-note">man-days = {{ "%.2f"|format(kpis.fte) }} FTE</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">Must to Have</div>
+      <div class="kpi-value">{{ kpis.must }}</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">MS/MT package possible</div>
+      <div class="kpi-value">{{ kpis.packages }}</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Non-AOP items</div>
+      <div class="kpi-value">{{ kpis.non_aop }}</div>
+    </div>
+  </section>
+
+  <!-- Chart cards -->
+  <section class="card-grid">
+    {% for card in cards %}
+      {% include "_card.html" %}
+    {% endfor %}
+  </section>
+
+  <!-- Biggest items -->
+  <section class="card">
+    <h3>5 biggest items (by total effort)</h3>
+    <table class="mini-table">
+      <tr><th>SI No</th><th>Requirement</th><th>IO Lead</th><th>Tech Module</th><th class="num">Man-days</th></tr>
+      {% for row in biggest_items %}
+        <tr>
+          <td>{{ row["SI NO"] }}</td>
+          <td><a href="/edit/{{ row.id }}">{{ row["Requirement/CR/New Demand Item"] }}</a></td>
+          <td>{{ row["IO Lead"] }}</td>
+          <td>{{ row["Module.1"] }}</td>
+          <td class="num">{{ row["Total Effort (Man-Days)"] }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </section>
+
+{% endblock %}

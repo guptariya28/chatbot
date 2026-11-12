@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <section class="card">
+    <h3>Change log (newest first)</h3>
+    {% if change_log|length == 0 %}
+      <p class="muted">No changes yet. Edit an item in the Demand Register.</p>
+    {% else %}
+      <table class="big-table">
+        <tr><th>When</th><th>Who</th><th>Item</th><th>What changed</th></tr>
+        {% for entry in change_log %}
+          <tr>
+            <td>{{ entry.time }}</td>
+            <td>{{ entry.user }}</td>
+            <td class="wide"><a href="/edit/{{ entry.item.id }}">SI {{ entry.item["SI NO"] }}: {{ entry.item["Requirement/CR/New Demand Item"] }}</a></td>
+            <td class="wide">{{ entry.text }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+  </section>
+
+{% endblock %}

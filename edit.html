@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <p><a href="/register">&larr; Back to the register</a></p>
+
+  <section class="card">
+    <div class="card-head">
+      <h3>SI {{ row["SI NO"] }}: {{ row["Requirement/CR/New Demand Item"] }}</h3>
+      {% if editable %}
+        <span class="badge badge-good">You can edit this item</span>
+      {% else %}
+        <span class="badge badge-not">View only</span>
+      {% endif %}
+    </div>
+
+    {% if saved %}
+      <p class="saved-message">Saved.</p>
+    {% endif %}
+
+    <form method="post" class="edit-form">
+      {% for field in fields %}
+        {% set box_name = "field_" ~ loop.index0 %}
+        {% set value = row[field.column] %}
+
+        <label>
+          <span>{{ field.label }}</span>
+
+          {% if field.type == "number" %}
+            <input type="number" step="any" min="0" name="{{ box_name }}" value="{{ value }}" {% if not editable %}disabled{% endif %}>
+
+          {% elif field.type == "choice" %}
+            <!-- list= connects the box to the <datalist>: pick a value or type a new one -->
+            <input type="text" name="{{ box_name }}" value="{{ value }}" list="list-{{ loop.index0 }}" {% if not editable %}disabled{% endif %}>
+            <datalist id="list-{{ loop.index0 }}">
+              {% for option in options[field.column] %}
+                <option value="{{ option }}">
+              {% endfor %}
+            </datalist>
+
+          {% else %}
+            <input type="text" name="{{ box_name }}" value="{{ value }}" {% if not editable %}disabled{% endif %}>
+          {% endif %}
+        </label>
+      {% endfor %}
+
+      <div class="calculated">
+        Total Effort (Development + Functional): <b>{{ row["Total Effort (Man-Days)"] }}</b> man-days
+        &nbsp;|&nbsp; IS PACKAGE: <b>{{ row["IS PACKAGE(Y/N)"] }}</b>
+      </div>
+
+      {% if editable %}
+        <button type="submit" class="primary-button">Save changes</button>
+      {% endif %}
+    </form>
+  </section>
+
+  <section class="card">
+    <h3>History of this item</h3>
+    {% if history|length == 0 %}
+      <p class="muted">No changes yet.</p>
+    {% endif %}
+    {% for entry in history %}
+      <p class="history-line"><b>{{ entry.time }}</b> &middot; {{ entry.user }} &middot; {{ entry.text }}</p>
+    {% endfor %}
+  </section>
+
+{% endblock %}

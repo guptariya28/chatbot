@@ -1,32 +1,36 @@
-# step1_read_excel.py
-# Goal: open the Excel file and SEE what is inside. Nothing is saved.
+# sheet_extraction.py
+# Goal: read the main sheet with the CORRECT header row and list every column.
 
+import warnings
 import pandas as pd
+from openpyxl.utils import get_column_letter
+
+# Hide the harmless "Data Validation" warning
+warnings.filterwarnings("ignore")
 
 file_name = "MBBP26_Apr_V1.xlsx"
-
-# ---- Part 1: which sheets are in the file? ----
-excel_file = pd.ExcelFile(file_name)
-
-print("Sheets in this file:")
-for sheet in excel_file.sheet_names:
-    print("  -", sheet)
-
-# ---- Part 2: read the main sheet ----
 sheet_name = "MBBP_2026_09Apr"
-data = pd.read_excel(file_name, sheet_name=sheet_name)
 
-print()
+# header=3  ->  use Excel row 4 as the column names
+data = pd.read_excel(file_name, sheet_name=sheet_name, header=3)
+
 print("Number of rows:", len(data))
 print("Number of columns:", len(data.columns))
 
-# ---- Part 3: the exact column names ----
+# ---- Every column, with its Excel letter (A, B, C...) ----
 print()
 print("Column names:")
+number = 1
 for column in data.columns:
-    print("  -", column)
+    letter = get_column_letter(number)
+    print("  ", letter, "-", column)
+    number = number + 1
 
-# ---- Part 4: the first 5 rows ----
+# ---- How many rows are real items (they have an SI NO)? ----
 print()
-print("First 5 rows:")
-print(data.head())
+print("Rows with an SI NO:", data["SI NO"].notna().sum())
+
+# ---- The first item, shown top to bottom (easier to read) ----
+print()
+print("First item:")
+print(data.iloc[0])

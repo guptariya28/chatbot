@@ -1,0 +1,192 @@
+/* ============================================================
+   style.css - colors, spacing and the look of the page
+   ============================================================ */
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f3f5f8;
+  color: #1f2933;
+}
+
+main {
+  padding: 20px 24px;
+}
+
+
+/* ---------- Top bar ---------- */
+.top-bar {
+  background: #1f4e79;
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.top-bar h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.subtitle {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+
+/* ---------- KPI cards ---------- */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 18px;
+  border-left: 5px solid #2f6fb5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: #5f6b7a;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+
+/* ---------- Filters ---------- */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.filter-bar input,
+.filter-bar select,
+.filter-bar button {
+  padding: 8px 10px;
+  border: 1px solid #c8d0da;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+}
+
+.filter-bar input {
+  width: 260px;
+}
+
+.filter-bar button {
+  cursor: pointer;
+  background: #eef2f7;
+}
+
+.filter-bar button:hover {
+  background: #dfe6ef;
+}
+
+
+/* ---------- Table ---------- */
+.table-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 12px;
+}
+
+.table-info {
+  font-size: 13px;
+  color: #5f6b7a;
+  margin: 4px 4px 10px;
+}
+
+.table-box {
+  overflow: auto;
+  max-height: 65vh;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+th {
+  background: #1f4e79;
+  color: white;
+  text-align: left;
+  padding: 8px 10px;
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+}
+
+td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #e6eaf0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+tbody tr:hover {
+  background: #eef5ff;
+}
+
+/* Long requirement text: wrap, but not too wide */
+.wide-cell {
+  min-width: 260px;
+  max-width: 380px;
+  white-space: normal;
+}
+
+.number-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+
+/* ---------- Colored labels (badges) ---------- */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.badge-must {
+  background: #fde2e1;
+  color: #b42318;
+}
+
+.badge-good {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-not {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.badge-other {
+  background: #e0ecff;
+  color: #1e4f91;
+}
+
+
+/* ---------- Small screens ---------- */
+@media (max-width: 800px) {
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

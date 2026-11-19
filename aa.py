@@ -46,3 +46,13 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+python -c "import certifi; print(certifi.where())"
+
+
+2. Check Atlassian authentication connectivity
+python -c "import httpx; print(httpx.get('https://auth.atlassian.com').status_code)"
+
+
+3. Check SSL-related environment variables
+Get-ChildItem Env: | Where-Object {$_.Name -match 'proxy|cert|ssl'}

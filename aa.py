@@ -1,24 +1,48 @@
 
 import asyncio
-from mcp import Client
+
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
 
+# Official Atlassian MCP endpoint
 MCP_SERVER_URL = "https://mcp.atlassian.com/v2/mcp"
 
 
 async def main():
 
-    async with Client(MCP_SERVER_URL) as client:
+    # Launch the OAuth-enabled remote MCP proxy
+    server_params = StdioServerParameters(
+        command="npx",
+        args=[
+            "-y",
+            "mcp-remote",
+            MCP_SERVER_URL
+        ]
+    )
 
-        # Call an existing Jira MCP tool
-        result = await client.call_tool(
-            "get_issue",
-            {
-                "issue_key": "PROJ-123"
-            }
-        )
+    print("Starting Atlassian MCP connection...")
 
-        print(result)
+    async with stdio_client(server_params) as (read, write):
+
+        async with ClientSession(read, write) as session:
+
+            # Initialize MCP connection
+            await session.initialize()
+
+            print("\nSuccessfully connected to Jira MCP!")
+
+            # Discover Jira tools
+            response = await session.list_tools()
+
+            print("\nAvailable Jira tools:\n")
+
+            for tool in response.tools:
+                print(f"Name: {tool.name}")
+                print(f"Description: {tool.description}")
+                print(f"Input: {tool.inputSchema}")
+                print("-" * 60)
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

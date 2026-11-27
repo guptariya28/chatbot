@@ -1,16 +1,16 @@
-import os
-import mysql.connector
+import pandas as pd
 
-conn = mysql.connector.connect(
-    host=os.getenv("MYSQL_HOST"),
-    user=os.getenv("MYSQL_USER"),
-    password=os.getenv("MYSQL_PASSWORD"),
-    database=os.getenv("MYSQL_DATABASE"),
-)
-cur = conn.cursor()
+# 1. Update these names to match your file
+file = 'your_file.xlsx'
+master = pd.read_excel(file, sheet_name='alice_user')
+keywords = pd.read_excel(file, sheet_name='keywords')
 
-cur.execute("SELECT * FROM chat_logs")
-for row in cur.fetchall():
-    print(row)
+# 2. Grab all text from the master sheet
+all_text = str(master.values).lower()
 
-conn.close()
+# 3. Check each keyword (assumes keywords are in the first column)
+for word in keywords.iloc[:, 0].dropna():
+    if str(word).lower() in all_text:
+        print(f"{word} -> Found")
+    else:
+        print(f"{word} -> Not Found")
